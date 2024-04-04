@@ -1,6 +1,9 @@
 package rosol.userservice.controllers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import rosol.userservice.cfg.SystemConfiguration;
+import rosol.userservice.models.ApplicationInfo;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -34,6 +37,7 @@ public class DeleteUserController implements ActionListener {
     JTextField missionIdTextField;
     JTable usersTable;
     RefreshUsersTableController refreshUsersTableController;
+    private ObjectMapper objectMapper;
 
     public DeleteUserController(JTextField nameTextField, JTextField lastnameTextField, JTextField birthdayTextField, JTextField genderTextField,
                                 JTextField nationalityTextField, JTextField phoneTextField, JTextField emailTextField, JTextField usernameTextField,
@@ -56,6 +60,8 @@ public class DeleteUserController implements ActionListener {
         this.missionIdTextField = missionIdTextField;
         this.usersTable = usersTable;
         this.refreshUsersTableController = refreshUsersTableController;
+        this.objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
     }
 
     @Override
@@ -93,8 +99,9 @@ public class DeleteUserController implements ActionListener {
      * @throws IOException exception management
      */
     private HttpURLConnection sendDeleteRequest(String userId) throws IOException {
-        URL url = new URL("http://" + SystemConfiguration.propertiesFile().getProperty("serviceIP") + ":" +
-                SystemConfiguration.propertiesFile().getProperty("servicePort") + "/deleteactive/" + userId);
+        ApplicationInfo instance = getServiceDataController.getServiceData("USER-SERVICE");
+
+        URL url = new URL("http://" + instance.getIpAddr() + ":" + instance.getPort().get$() + "/deleteactive/" + userId);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("PUT");
         return conn;

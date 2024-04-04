@@ -1,6 +1,9 @@
 package rosol.userservice.controllers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import rosol.userservice.cfg.SystemConfiguration;
+import rosol.userservice.models.ApplicationInfo;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -31,6 +34,7 @@ public class UpdateUserController implements ActionListener {
     JTextField missionIdTextField;
     JTable usersTable;
     RefreshUsersTableController refreshUsersTableController;
+    private ObjectMapper objectMapper;
 
     public UpdateUserController(JTextField nameTextField, JTextField lastnameTextField, JTextField birthdayTextField, JTextField genderTextField,
                                 JTextField nationalityTextField, JTextField phoneTextField, JTextField emailTextField, JTextField usernameTextField,
@@ -53,6 +57,8 @@ public class UpdateUserController implements ActionListener {
         this.missionIdTextField = missionIdTextField;
         this.usersTable = usersTable;
         this.refreshUsersTableController = refreshUsersTableController;
+        this.objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
     }
 
     @Override
@@ -95,12 +101,13 @@ public class UpdateUserController implements ActionListener {
      * @throws IOException exception management
      */
     private HttpURLConnection sendUpdateRequest(String userId) throws IOException {
-        URL url = new URL("http://" + SystemConfiguration.propertiesFile().getProperty("serviceIP") + ":" +
-                SystemConfiguration.propertiesFile().getProperty("servicePort") + "/update/" + userId);
+        ApplicationInfo instance = getServiceDataController.getServiceData("USER-SERVICE");
+        URL url = new URL("http://" + instance.getIpAddr() + ":" + instance.getPort().get$() + "/update/" + userId);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("PUT");
         conn.setDoOutput(true);
         conn.setRequestProperty("Content-Type", "application/json");
+
         String input = textfieldsInputs();
 
         OutputStream os = conn.getOutputStream();
